@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - TweetsTrendApplication",
+            "request": "launch",
+            "mainClass": "com.ai.tweetsTrend.TweetsTrendApplication",
+            "projectName": "tweetsTrend"
+        }
+    ]
+}
