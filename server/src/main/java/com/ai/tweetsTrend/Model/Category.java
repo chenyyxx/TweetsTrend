@@ -13,7 +13,7 @@ public class Category{
 
     private String categoryName;
 
-    private Integer score;
+    private Double score;
 
     public Integer getId(){
         return id;
@@ -31,11 +31,11 @@ public class Category{
         this.categoryName = categoryName;
     }
 
-    public Integer getScore(){
+    public Double getScore(){
         return score;
     }
 
-    public void setScore(Integer score){
+    public void setScore(Double score){
         this.score = score;
     }
 

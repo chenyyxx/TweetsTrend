@@ -15,7 +15,7 @@ public class CategoryController{
     private CategoryRepository categoryRepository;
 
     @PostMapping(path="/setCategory")
-    public @ResponseBody String addCategory (@RequestParam(name = "name") String categoryName, @RequestParam(name="score") Integer score){
+    public @ResponseBody String addCategory (@RequestParam(name = "name") String categoryName, @RequestParam(name="score") Double score){
         Category category = new Category();
         category.setCategoryName(categoryName);
         category.setScore(score);
