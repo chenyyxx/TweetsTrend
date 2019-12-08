@@ -1,5 +1,6 @@
 import tweepy
 import socket
+import json
 
 consumer_key = 'uUd5T4Dn6ekKOpKGtgW5rFUiB'
 consumer_secret = 'f7r33vgQHooHGVJ4d7dHdpLAFR7HAQikW85XPyF7q7xT4MB8LY'
@@ -13,9 +14,19 @@ class MyStreamListener(tweepy.StreamListener):
         super(MyStreamListener, self).__init__()
         self.client_socket = csocket
 
-    def on_status(self, status):
+    def on_data(self, data):
         try:
-            tweet = status.text
+            cur_status = json.loads(data)
+            tweet = ""
+            if 'retweeted_status' in cur_status:
+                cur_status = cur_status['retweeted_status']
+            elif 'quoted_status' in cur_status:
+                tweet = str(cur_status['text'])
+                cur_status = cur_status['quoted_status']
+            if 'extended_tweet' in cur_status:
+                tweet = tweet + str(cur_status['extended_tweet']['full_text']) + "\n"
+            else:
+                tweet = tweet + str(cur_status['text']) + "\n"
             print(tweet)
             self.client_socket.send(tweet.encode('utf-8'))
             return True
@@ -47,4 +58,3 @@ print("Waiting for TCP connection...")
 c, addr = s.accept()
 print("Connected... Starting getting tweets.")
 sendData(c)
-
