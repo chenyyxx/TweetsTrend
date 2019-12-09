@@ -12,37 +12,43 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-public class Tweets{
+public class Words{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    private String content;
+    private String word;
+
+    private Integer count;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Category category;
 
-    public Integer getId(){
-        return id;
+
+    public String getWord(){
+        return word;
     }
 
-    public void setId(Integer id){
-        this.id=id;
-    } 
-
-    public String getContent(){
-        return content;
+    public void setWord(String word){
+        this.word = word;
     }
 
-    public void setContent(String content){
-        this.content=content;
+    public Integer getCount(){
+        return count;
     }
+
+    public void setCount(Integer count){
+        this.count = count;
+    }
+
     public Category getCategory(){
         return category;
     }
+
     public void setCategory(Category category){
-        this.category=category;
+        this.category = category;
     }
+
 }

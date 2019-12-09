@@ -15,6 +15,8 @@ public class Category{
 
     private Double score;
 
+    private Integer count;
+
     public Integer getId(){
         return id;
     }
@@ -39,4 +41,11 @@ public class Category{
         this.score = score;
     }
 
+    public Integer getCount(){
+        return count;
+    }
+
+    public void setCount(Integer count){
+        this.count = count;
+    }
 }
