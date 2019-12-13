@@ -4,6 +4,3 @@
 *.pyc
 *.crc
 /checkpoint
-.idea/workspace.xml
-.idea/TweetsTrend.iml
-.idea/misc.xml
