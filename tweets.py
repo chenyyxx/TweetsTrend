@@ -21,12 +21,12 @@ class MyStreamListener(tweepy.StreamListener):
             if 'retweeted_status' in cur_status:
                 cur_status = cur_status['retweeted_status']
             elif 'quoted_status' in cur_status:
-                tweet = str(cur_status['text'])
+                tweet = cur_status['text']
                 cur_status = cur_status['quoted_status']
             if 'extended_tweet' in cur_status:
-                tweet = tweet + str(cur_status['extended_tweet']['full_text']) + "\n"
+                tweet = tweet + cur_status['extended_tweet']['full_text'] + "\n"
             else:
-                tweet = tweet + str(cur_status['text']) + "\n"
+                tweet = tweet + cur_status['text'] + "\n"
             print(tweet)
             self.client_socket.send(tweet.encode('utf-8'))
             return True
@@ -53,8 +53,8 @@ s = socket.socket()
 host = 'localhost'
 port = 5555
 s.bind((host, port))
-s.listen(10)
+s.listen(5)
 print("Waiting for TCP connection...")
 c, addr = s.accept()
-print("Connected... Starting getting tweets.")
+print("Connected... Starting streaming tweets.")
 sendData(c)
