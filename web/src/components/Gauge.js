@@ -1,12 +1,12 @@
 import React from 'react';
-import { Chart, Axis, Coord, Geom, Guide, Shape } from 'bizcharts';
+import { Legend, Chart, Axis, Coord, Geom, Guide, Shape } from 'bizcharts';
 
 const { Html, Arc } = Guide;
 
 // 下面的代码会被作为 cdn script 注入 注释勿删
 // CDN START
 const data = [
-  { value: -0.38 },
+  { value: -0.48 },
 ];
 
 const lineWidth = 15;
@@ -61,8 +61,9 @@ export default class Gauge extends React.Component {
   render() {
     const val = data[0].value;
     return (
-      <Chart height={375} data={data} scale={cols} forceFit>
+      <Chart height={375} data={data} scale={cols}>
         <Coord type="polar" startAngle={-9 / 8 * Math.PI} endAngle={1 / 8 * Math.PI} radius={0.75} />
+        <Legend position="right" dy={-20}/>
         <Axis
           name="value"
           zIndex={2}
@@ -87,7 +88,7 @@ export default class Gauge extends React.Component {
           <Arc
             zIndex={1}
             start={[-1, 0.965]}
-            end={[-0.3, 0.965]}
+            end={[-0.05, 0.965]}
             style={{ // 底灰色
               stroke: color[0],
               lineWidth,
@@ -95,8 +96,8 @@ export default class Gauge extends React.Component {
           />
           <Arc
             zIndex={1}
-            start={[-0.3, 0.965]}
-            end={[0.3, 0.965]}
+            start={[-0.05, 0.965]}
+            end={[0.05, 0.965]}
             style={{ // 底灰色
               stroke: color[1],
               lineWidth,
@@ -104,7 +105,7 @@ export default class Gauge extends React.Component {
           />
           <Arc
             zIndex={1}
-            start={[0.3, 0.965]}
+            start={[0.05, 0.965]}
             end={[1, 0.965]}
             style={{ // 底灰色
               stroke: color[2],
