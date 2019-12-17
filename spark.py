@@ -1,7 +1,6 @@
 from pyspark import SparkConf, SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.sql import Row, SQLContext
-from collections import namedtuple
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from nltk.corpus import stopwords
 
@@ -60,18 +59,18 @@ def check_stopwords(word):
 
 # =====================================
 # Getting word counts for word cloud
-words = dataStream.flatMap(lambda line: line.split())\
-    .map(lambda word: word.lower())\
-    .filter(lambda word: check_stopwords(word))\
-    .map(lambda x: (x, 1))
-wordCounts = words.updateStateByKey(aggregate_words_count)
-wordCounts.foreachRDD(process_word_counts)
+# words = dataStream.flatMap(lambda line: line.split())\
+#     .map(lambda word: word.lower())\
+#     .filter(lambda word: check_stopwords(word))\
+#     .map(lambda x: (x, 1))
+# wordCounts = words.updateStateByKey(aggregate_words_count)
+# wordCounts.foreachRDD(process_word_counts)
 
 
 # Get sentiment scores
-# scores = dataStream.map(lambda text: analyzer.polarity_scores(text).get("compound"))
+scores = dataStream.map(lambda text: (text, analyzer.polarity_scores(text.encode("utf-8")).get("compound")))
+scores.foreachRDD(process_word_counts)
 # scores.foreachRDD(lambda rdd: rdd.toDF().registerTempTable("scores"))
-
 
 ssc.start()
 
