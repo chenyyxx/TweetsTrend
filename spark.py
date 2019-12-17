@@ -1,25 +1,32 @@
-from pyspark import SparkContext
+from pyspark import SparkConf, SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.sql import Row, SQLContext
 from collections import namedtuple
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-
+from nltk.corpus import stopwords
 
 analyzer = SentimentIntensityAnalyzer()
 
+stop_words = set(stopwords.words('english'))
+
 # Creating the Spark Context
-sc = SparkContext(master="local", appName="TwitterStreamApp")
+# sc = SparkContext(master="local", appName="TwitterStreamApp2")
+
+conf = SparkConf()
+conf.setAppName("TwitterStreamApp")
+# create spark context with the above configuration
+sc = SparkContext(conf=conf)
 sc.setLogLevel("ERROR")
 
 # Creating the streaming context
-ssc = StreamingContext(sc, 10)
+ssc = StreamingContext(sc, 2)
 ssc.checkpoint("checkpoint")
 
 # Creating the SQL context
-sqlContext = SQLContext(sc)
+# sqlContext = SQLContext(sc)
 
 # Getting tweets stream from TCP connection
-tweets = ssc.socketTextStream("localhost", 5555)
+dataStream = ssc.socketTextStream("localhost", 5555)
 
 
 # =====================================
@@ -28,13 +35,13 @@ def aggregate_words_count(new_values, total_sum):
 
 
 def get_sql_context_instance(spark_context):
-    if ('sqlContextSingletonInstance' not in globals()):
+    if 'sqlContextSingletonInstance' not in globals():
         globals()['sqlContextSingletonInstance'] = SQLContext(spark_context)
     return globals()['sqlContextSingletonInstance']
 
 
 def process_word_counts(time, rdd):
-    print("----------- %s -----------" % str(time))
+    print("\n----------- %s -----------\n" % str(time))
     # Get spark sql singleton context from the current context
     sql_context = get_sql_context_instance(rdd.context)
     # convert the RDD to Row RDD
@@ -48,14 +55,24 @@ def process_word_counts(time, rdd):
     top30words.show()
 
 
+def check_stopwords(word):
+    if word in stop_words:
+        return True
+    else:
+        return False
+
+
 # =====================================
 # Getting word counts for word cloud
-words = tweets.flatMap(lambda line: line.split(" ")).map(lambda x: (x, 1))
+words = dataStream.flatMap(lambda line: line.split(" ")).map(lambda x: (x, 1))
 wordCounts = words.updateStateByKey(aggregate_words_count)
 wordCounts.foreachRDD(process_word_counts)
+#.lower()
+# .filter(lambda word: check_stopwords(word))\
+
 
 # Get sentiment scores
-# scores = tweets.map(lambda text: analyzer.polarity_scores(text).get("compound"))
+# scores = dataStream.map(lambda text: analyzer.polarity_scores(text).get("compound"))
 # scores.foreachRDD(lambda rdd: rdd.toDF().registerTempTable("scores"))
 
 
