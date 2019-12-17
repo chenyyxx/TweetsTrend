@@ -5,25 +5,21 @@ from collections import namedtuple
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from nltk.corpus import stopwords
 
+# Creating sentiment analyzer instance
 analyzer = SentimentIntensityAnalyzer()
 
+# Get the set of stop_words
 stop_words = set(stopwords.words('english'))
 
 # Creating the Spark Context
-# sc = SparkContext(master="local", appName="TwitterStreamApp2")
-
 conf = SparkConf()
-conf.setAppName("TwitterStreamApp")
-# create spark context with the above configuration
+conf.setAppName("TwitterAnalysis")
 sc = SparkContext(conf=conf)
 sc.setLogLevel("ERROR")
 
 # Creating the streaming context
 ssc = StreamingContext(sc, 2)
 ssc.checkpoint("checkpoint")
-
-# Creating the SQL context
-# sqlContext = SQLContext(sc)
 
 # Getting tweets stream from TCP connection
 dataStream = ssc.socketTextStream("localhost", 5555)
@@ -57,18 +53,19 @@ def process_word_counts(time, rdd):
 
 def check_stopwords(word):
     if word in stop_words:
-        return True
-    else:
         return False
+    else:
+        return True
 
 
 # =====================================
 # Getting word counts for word cloud
-words = dataStream.flatMap(lambda line: line.split(" ")).map(lambda x: (x, 1))
+words = dataStream.flatMap(lambda line: line.split())\
+    .map(lambda word: word.lower())\
+    .filter(lambda word: check_stopwords(word))\
+    .map(lambda x: (x, 1))
 wordCounts = words.updateStateByKey(aggregate_words_count)
 wordCounts.foreachRDD(process_word_counts)
-#.lower()
-# .filter(lambda word: check_stopwords(word))\
 
 
 # Get sentiment scores
