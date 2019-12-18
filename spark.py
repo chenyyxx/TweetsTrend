@@ -17,7 +17,7 @@ sc = SparkContext(conf=conf)
 sc.setLogLevel("ERROR")
 
 # Creating the streaming context
-ssc = StreamingContext(sc, 2)
+ssc = StreamingContext(sc, 30)
 ssc.checkpoint("checkpoint")
 
 # Getting tweets stream from TCP connection
@@ -50,26 +50,24 @@ def process_word_counts(time, rdd):
     top30words.show()
 
 
-def check_stopwords(word):
-    if word in stop_words:
-        return False
-    else:
-        return True
+def process_sentiment_scores(time, rdd):
+    print("\n----------- %s -----------\n" % str(time))
+    sql_context = get_sql_context_instance(rdd.context)
 
 
 # =====================================
 # Getting word counts for word cloud
-# words = dataStream.flatMap(lambda line: line.split())\
-#     .map(lambda word: word.lower())\
-#     .filter(lambda word: check_stopwords(word))\
-#     .map(lambda x: (x, 1))
-# wordCounts = words.updateStateByKey(aggregate_words_count)
-# wordCounts.foreachRDD(process_word_counts)
+words = dataStream.flatMap(lambda line: line.split())\
+    .map(lambda word: word.lower())\
+    .filter(lambda word: (word not in stop_words))\
+    .map(lambda x: (x, 1))
+wordCounts = words.updateStateByKey(aggregate_words_count)
+wordCounts.foreachRDD(process_word_counts)
 
 
 # Get sentiment scores
-scores = dataStream.map(lambda text: (text, analyzer.polarity_scores(text.encode("utf-8")).get("compound")))
-scores.foreachRDD(process_word_counts)
+# scores = dataStream.map(lambda text: (text, analyzer.polarity_scores(text.encode("utf-8")).get("compound")))
+# scores.foreachRDD(process_word_counts)
 # scores.foreachRDD(lambda rdd: rdd.toDF().registerTempTable("scores"))
 
 ssc.start()
