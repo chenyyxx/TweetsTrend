@@ -1,24 +1,38 @@
 package com.ai.tweetsTrend.Controller;
 
+import com.ai.tweetsTrend.Exception.ResourceNotFoundException;
 import com.ai.tweetsTrend.Repository.CategoryRepository;
 import com.ai.tweetsTrend.Model.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 public class CategoryController{
     @Autowired
     private CategoryRepository categoryRepository;
 
-    @PostMapping(path="/setCategory")
-    public @ResponseBody String addCategory (@RequestBody Category category){
-        categoryRepository.save(category);
-        return "Saved";
+//    @PostMapping(path="/addCategory")
+//    public @ResponseBody String addCategory (@RequestBody Category category){
+//        categoryRepository.save(category);
+//        return "Saved";
+//    }
+
+    @PutMapping("/updateCategory/{categoryName}")
+    public @ResponseBody Category updateCategory(@PathVariable(value = "categoryName") String categoryName, @RequestBody Category category){
+        Category queryResult =  categoryRepository.findByCategoryName(categoryName);
+        if(queryResult!=null){
+            queryResult.setCategoryName(category.getCategoryName());
+            queryResult.setCount(category.getCount());
+            queryResult.setScore(category.getScore());
+            categoryRepository.save(queryResult);
+            return queryResult;
+        } else{
+            categoryRepository.save(category);
+            return category;
+        }
+
+
     }
 
     @GetMapping(path="/getAll")
@@ -26,8 +40,14 @@ public class CategoryController{
         return categoryRepository.findAll();
     }
 
-    @GetMapping(path="/getCategory")
-    public @ResponseBody Category getCategory(@RequestParam(name = "name")String categoryName){
-        return categoryRepository.findByCategoryName(categoryName);
+    @GetMapping(path="/getCategory/{categoryName}")
+    public @ResponseBody Category getCategory(@PathVariable(name = "categoryName")String categoryName){
+
+        Category category =  categoryRepository.findByCategoryName(categoryName);
+        if(category!=null){
+            return category;
+        } else{
+            throw new ResourceNotFoundException("categoryName "+categoryName+"Not Found, use the POST API to add one");
+        }
     }
 }
