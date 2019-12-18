@@ -4,10 +4,9 @@ import { Chart, Geom, Axis, Tooltip, Legend } from 'bizcharts';
 import WordCloud from "react-d3-cloud";
 import Gauge from './Gauge';
 import SearchBar from './SearchBar';
-import {DEFAULT_CATEGORY_INFO} from "../constants";
+import { DEFAULT_CATEGORY_INFO, DEFAULT_WORD_CLOUD, DEFAULT_TWEETS } from "../constants";
 
 const axios = require('axios').default;
-
 
 // TODO: fix layout in other screen size
 // TODO: change the test data to real data by fetching it from backend
@@ -54,31 +53,7 @@ const TredningList = [
         title: '#ChainSmoker',
     },
 ];
-// This is for word cloud
-// Test Word Cloud Data
-// Get from server -> words table
-const wordCloudData = [
-    { text: "the", value: 1689 },
-    { text: "to", value: 1446 },
-    { text: "Trump", value: 771 },
-    { text: "of", value: 718 },
-    { text: "a", value: 675 },
-    { text: "and", value: 541 },
-    { text: "is", value: 509 },
-    { text: "in", value: 472 },
-    { text: "for", value: 389 },
-    { text: "be", value: 271 },
-    { text: "on", value: 271 },
-    { text: "that", value: 268 },
-    { text: "The", value: 254 },
-    { text: "%", value: 244 },
-    { text: "he", value: 233 },
-    { text: "will", value: 200 },
-    { text: "you", value: 190 },
-    { text: "-", value: 187 },
-    { text: "are", value: 187 },
 
-];
 
 const fontSizeMapper = word => Math.log2(word.value) * 5;
 // const rotate = word => word.value % 360;
@@ -100,8 +75,11 @@ const { Content, Footer, Sider } = Layout;
 
 export default class Main extends React.Component {
 
-    state ={
+    state = {
+        allCategory: [],
         categoryInfo: DEFAULT_CATEGORY_INFO,
+        wordCloudData: DEFAULT_WORD_CLOUD,
+        exampleTweets: DEFAULT_TWEETS,
     }
 
     componentDidMount() {
@@ -113,20 +91,37 @@ export default class Main extends React.Component {
     };
 
     // To be implemented
-    loadCategoryInfo= async (categoryName) => {
-        const response = await axios.get("http://localhost:8080/getCategory/"+categoryName);
-        // console.log(response.data);
-        this.setState({categoryInfo: 
+    loadCategoryInfo = async (categoryName) => {
+        const allCategory = await axios.get("http://localhost:8080/category/getAll?page=0%size=20&sort=count,desc");
+        const categoryInfo = await axios.get("http://localhost:8080/getCategory/" + categoryName);
+        const wordCloudData = await axios.get("http://localhost:8080/category/" + categoryInfo.data.id + "/getAllWords")
+        const exampleTweets = await axios.get("http://localhost:8080/category/" + categoryInfo.data.id + "/getAllTweets")
+        console.log(categoryInfo.data);
+        this.setState(
             {
-                categoryName :response.data.categoryName,
-                score:response.data.score,
-                count:response.data.count
+                allCategory: allCategory.data.content.map(category => ({
+                    name:category.categoryName
+                })),
+                categoryInfo: {
+                    categorId: categoryInfo.data.id,
+                    categoryName: categoryInfo.data.categoryName,
+                    score: categoryInfo.data.score,
+                    count: categoryInfo.data.count
+                },
+                wordCloudData: wordCloudData.data.map(word => ({
+                    text: word.word,
+                    value: word.count
+                })),
+                exampleTweets: exampleTweets.data.map(tweet => ({
+                    content:tweet.content
+                }))
             }
-        });
-        // console.log(this.state)
+        );
+        console.log(this.state)
     }
 
     render() {
+        const a = [1,2,3,4,5];
         return (
             <div>
                 <PageHeader
@@ -138,7 +133,7 @@ export default class Main extends React.Component {
                     subTitle="Help you find the public sentiments towards an event"
                     extra={
                         // Use the SearchBar.js Component to replace this
-                        <SearchBar handleSelectCategory={this.handleSelectCategory}/>
+                        <SearchBar handleSelectCategory={this.handleSelectCategory} />
                     }
                 />
                 <Layout style={{ minHeight: '100vh' }}>
@@ -150,18 +145,17 @@ export default class Main extends React.Component {
                                     <div className="logo" />
                                     <Menu theme="light" defaultSelectedKeys={['1']} mode="inline">
                                         <div style={{ minHeight: '120vh' }}>
-                                            <List 
+                                            <List
                                                 size="small"
-                                                header={<Typography.Text strong style={{paddingLeft: '20px'}}>Trending Events</Typography.Text>}
+                                                header={<Typography.Text strong style={{ paddingLeft: '20px' }}>Trending Events</Typography.Text>}
                                                 footer={<div></div>}
-                                                dataSource={TredningList}
-                                                renderItem={item => 
-                                                <List.Item>
-                                                    <Button type='link'>
-                                                        {item.rank+". "}
-                                                        {item.title}
-                                                    </Button>
-                                                </List.Item>}
+                                                dataSource={this.state.allCategory}
+                                                renderItem={item =>
+                                                    <List.Item>
+                                                        <Button type='link'>
+                                                            {item.name}
+                                                        </Button>
+                                                    </List.Item>}
                                             />
                                         </div>
                                     </Menu>
@@ -175,55 +169,69 @@ export default class Main extends React.Component {
                                             <Typography.Text strong>Event</Typography.Text>
                                         </Breadcrumb.Item>
                                         <Breadcrumb.Item>
-                                            <Typography.Text strong>Trump</Typography.Text>
+                                            <Typography.Text strong>{this.state.categoryInfo.categoryName}</Typography.Text>
                                         </Breadcrumb.Item>
                                     </Breadcrumb>
                                     <div>
                                         <Row gutter={[8, 8]} type='flex'>
                                             <Col span={12}>
-                                                <Card className="Score" title="Sentiment Score" style={{height:'615px', justify: 'center', align: 'center'}}>
+                                                <Card className="Score" title="Sentiment Score" style={{ height: '615px', justify: 'center', align: 'center' }}>
                                                     <Row gutter={16} >
-                                                        <Col span={12} type='flex'type='flex' align='center'>
-                                                            <Statistic title="Event" value={this.state.categoryInfo.categoryName} valueStyle={{fontSize: '36px'}} />
+                                                        <Col span={12} type='flex' type='flex' align='center'>
+                                                            <Statistic title="Event" value={this.state.categoryInfo.categoryName} valueStyle={{ fontSize: '36px' }} />
                                                         </Col>
                                                         <Col span={12} type='flex' align='center'>
-                                                            <Statistic
+                                                            {this.state.categoryInfo.score < -0.05 && <Statistic
                                                                 title="Score"
                                                                 valueStyle={{ color: '#F5222D', fontSize: '36px' }}
                                                                 value={this.state.categoryInfo.score}
                                                                 prefix={<Icon type="arrow-down" />}
                                                                 precision={2}
-                                                            />
+                                                            />}
+                                                            {this.state.categoryInfo.score >= -0.05 && this.state.categoryInfo.score <= 0.05 && <Statistic
+                                                                title="Score"
+                                                                valueStyle={{ color: '#FFBF00', fontSize: '36px' }}
+                                                                value={this.state.categoryInfo.score}
+                                                                prefix={<Icon type="-minus" />}
+                                                                precision={2}
+                                                            />}
+                                                            {this.state.categoryInfo.score > 0.05 && <Statistic
+                                                                title="Score"
+                                                                valueStyle={{ color: '#55cb72', fontSize: '36px' }}
+                                                                value={this.state.categoryInfo.score}
+                                                                prefix={<Icon type="arrow-up" />}
+                                                                precision={2}
+                                                            />}
                                                         </Col>
                                                     </Row>
-                                                    <div style={{paddingLeft: '100px'}}>
-                                                        <Gauge score={this.state.categoryInfo.score}/>
+                                                    <div style={{ paddingLeft: '100px' }}>
+                                                        <Gauge score={this.state.categoryInfo.score} />
                                                     </div>
                                                     <Row type='flex' justify='center' align='center'>
                                                         <Col span={8} justify='center' align='center'>
                                                             <Tag
-                                                                color= '#F5222D'
+                                                                color='#F5222D'
                                                             >Negative</Tag>
                                                         </Col>
                                                         <Col span={8} justify='center' align='center'>
                                                             <Tag
-                                                                color= '#FFBF00'
+                                                                color='#FFBF00'
                                                             >Netural</Tag>
                                                         </Col>
                                                         <Col span={8} justify='center' align='center'>
                                                             <Tag
-                                                                color= '#55cb72'
+                                                                color='#55cb72'
                                                             >Postive</Tag>
                                                         </Col>
                                                     </Row>
                                                 </Card>
                                             </Col>
                                             <Col span={12}>
-                                                <Card className="Tweets" title="Example Tweets">
+                                                <Card className="Tweets" title="Example Tweets" style={{ height: '615px', justify: 'center', align: 'center' }}>
                                                     <Row gutter={[16, 16]} type="flex">
                                                         <Col span={12}>
                                                             <Comment
-                                                                
+
                                                                 avatar={
                                                                     <Avatar
                                                                         icon="user"
@@ -231,7 +239,8 @@ export default class Main extends React.Component {
                                                                 }
                                                                 //TODO: Get from server -> Tweets table. content 
                                                                 content={
-                                                                    <p>BREAKING: The House Judiciary Cmte just released their 658-page impeachment report, to accompany the articles of impeachment against Trump for abuse of power and obstruction of justice. The best sentence in the report: “President Trump should be impeached and removed from office”</p>
+                                                                    <p>{this.state.exampleTweets[0].content}
+                                                                    </p>
                                                                 }
                                                             />
                                                         </Col>
@@ -243,8 +252,7 @@ export default class Main extends React.Component {
                                                                     />
                                                                 }
                                                                 content={
-                                                                    <p>
-                                                                        Dem senator: I'm "gravely concerned" about what Trump might do before election if acquitted http://hill.cm/5dHJtQR
+                                                                    <p>{this.state.exampleTweets[1].content}
                                                                     </p>
                                                                 }
                                                             />
@@ -259,23 +267,21 @@ export default class Main extends React.Component {
                                                                     />
                                                                 }
                                                                 content={
-                                                                    <p>
-                                                                        CNN's Jake Tapper grills Rand Paul on whether he really believes Trump is against corruption
+                                                                    <p>{this.state.exampleTweets[2].content}
                                                                     </p>
                                                                 }
                                                             />
                                                         </Col>
                                                         <Col span={12}>
                                                             <Comment
-                                                                
+
                                                                 avatar={
                                                                     <Avatar
                                                                         icon="user"
                                                                     />
                                                                 }
                                                                 content={
-                                                                    <p>
-                                                                        Trump says he ‘wouldn’t mind’ long impeachment process, calls House-passed articles a ‘sham’ https://rt.com/usa/475856-trump-wouldnt-mind-impeachment-sham/
+                                                                    <p>{this.state.exampleTweets[3].content}
                                                                     </p>
                                                                 }
                                                             />
@@ -284,30 +290,28 @@ export default class Main extends React.Component {
                                                     <Row gutter={[16, 16]} type="flex">
                                                         <Col span={12}>
                                                             <Comment
-                                                                
+
                                                                 avatar={
                                                                     <Avatar
                                                                         icon="user"
                                                                     />
                                                                 }
                                                                 content={
-                                                                    <span>
-                                                                        TRUMP'S.SUBHASH NIRANKARI CHANDER'S PEOPLE'S DON'TLIKE DECEPTIONS WANNA ACTLIKE MYFRIEND WON'TTAKE JOB'SFROM MEE CAUSE STUPID TRUMP'S NOTLIKE WORKING4GOD SOWICKER YOU ARE&RUSSIAN DUMBASS YOU ARE.EITHER WORK4GOD GET OUTBEFORE PISSMEE😄
-                                                                    </span>
+                                                                    <p>{this.state.exampleTweets[4].content}
+                                                                    </p>
                                                                 }
                                                             />
                                                         </Col>
                                                         <Col span={12}>
                                                             <Comment
-                                                                
+
                                                                 avatar={
                                                                     <Avatar
                                                                         icon="user"
                                                                     />
                                                                 }
                                                                 content={
-                                                                    <p>
-                                                                        Trump Lashed Out at Fox News for Reporting on the Reality of Impeachment—Again
+                                                                    <p>{this.state.exampleTweets[5].content}
                                                                     </p>
                                                                 }
                                                             />
@@ -320,10 +324,10 @@ export default class Main extends React.Component {
                                         <Row gutter={[8, 8]}>
                                             <Col span={12}>
                                                 <Card className="StatsGrah" title="Word Count">
-                                                    <Chart width={750} height={400} data={wordCloudData} scale={cols}>
+                                                    <Chart width={750} height={400} data={this.state.wordCloudData} scale={cols}>
                                                         <Axis name="text" title />
                                                         <Axis name="value" title />
-                                                        <Legend position="bottom" offsetY={-window.innerHeight / 2 +430} offsetX={0}/>
+                                                        <Legend position="bottom" offsetY={-window.innerHeight / 2 + 430} offsetX={0} />
                                                         <Tooltip />
                                                         <Geom type="interval" position="text*value" color="text" />
                                                     </Chart>
@@ -331,11 +335,11 @@ export default class Main extends React.Component {
                                             </Col>
                                             <Col span={12}>
                                                 <Card className="WordCloud" title="Word Cloud">
-                                                    <WordCloud 
-                                                        data={wordCloudData} 
+                                                    <WordCloud
+                                                        data={this.state.wordCloudData}
                                                         fontSizeMapper={fontSizeMapper}
                                                         height={400}
-                                                     />
+                                                    />
                                                 </Card>
                                             </Col>
                                         </Row>

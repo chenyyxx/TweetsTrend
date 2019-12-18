@@ -27,9 +27,9 @@ public class WordsController {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    @GetMapping(path="/category/{categoryId}/getAllwords")
-    public @ResponseBody Page<Words> getWords(@PathVariable(value = "categoryId") Integer categoryId, Pageable pageable){
-        return wordsRepository.findByCategoryId(categoryId, pageable);
+    @GetMapping(path="/category/{categoryId}/getAllWords")
+    public @ResponseBody List<Words> getWords(@PathVariable(value = "categoryId") Integer categoryId){
+        return wordsRepository.findAllByCategory_Id(categoryId);
     }
 //
 //    @PostMapping("/category/{categoryId}/addWord")

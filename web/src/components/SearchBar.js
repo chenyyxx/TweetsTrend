@@ -7,11 +7,7 @@ const axios = require('axios').default;
 // Use getAll method in category to get all the category name and find a match
 class SearchBar extends Component {
     state = {
-        dataSource:
-            [
-                { categoryName: "Trump" },
-                { categoryName: "BlackFriday" }
-            ],
+        dataSource:[]
     };
     // Send request to get all the result that starts with `value`
     // The request can be handled by Spring Data Jpa => findByCategoryNameStartingWith

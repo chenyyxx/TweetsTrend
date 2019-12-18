@@ -1,5 +1,6 @@
 package com.ai.tweetsTrend.Controller;
 
+import com.ai.tweetsTrend.Model.Words;
 import com.ai.tweetsTrend.Repository.CategoryRepository;
 import com.ai.tweetsTrend.Repository.TweetsRepository;
 
@@ -23,9 +24,9 @@ public class TweetsController {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    @GetMapping(path="/GetTweets")
-    public @ResponseBody Optional<Tweets> getTweets(@RequestParam(name="tweetsId") Integer tweetsId){
-        return tweetsRepository.findById(tweetsId);
+    @GetMapping(path="/category/{categoryId}/getAllTweets")
+    public @ResponseBody List<Tweets> getTweets(@PathVariable(value = "categoryId") Integer categoryId){
+        return tweetsRepository.findAllByCategory_Id(categoryId);
     }
 
     @PutMapping("category/{categoryName}/updateAllTweets")

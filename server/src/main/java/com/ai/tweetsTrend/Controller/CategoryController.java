@@ -4,6 +4,8 @@ import com.ai.tweetsTrend.Exception.ResourceNotFoundException;
 import com.ai.tweetsTrend.Repository.CategoryRepository;
 import com.ai.tweetsTrend.Model.Category;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,9 +44,10 @@ public class CategoryController{
         return categoryRepository.findAllByCategoryNameContaining(value);
     }
 
-    @GetMapping(path="/getAll")
-    public @ResponseBody Iterable<Category> getAll(){
-        return categoryRepository.findAll();
+    @GetMapping(path="category/getAll")
+    public @ResponseBody
+    Page<Category> getAll(Pageable pageable){
+        return categoryRepository.findAll(pageable);
     }
 
     @GetMapping(path="/getCategory/{categoryName}")

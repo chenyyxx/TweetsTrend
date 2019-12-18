@@ -6,7 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface WordsRepository extends JpaRepository<Words, Integer>{
-    public Page<Words> findByCategoryId(Integer categoryId, Pageable pageable);
+    public List<Words> findAllByCategory_Id(Integer categoryId);
     public void deleteAllByCategory_CategoryName(String name);
 }
