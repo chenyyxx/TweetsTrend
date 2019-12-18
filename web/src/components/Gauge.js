@@ -5,9 +5,8 @@ const { Html, Arc } = Guide;
 
 // 下面的代码会被作为 cdn script 注入 注释勿删
 // CDN START
-const data = [
-  { value: -0.48 },
-];
+// use props to put data in
+
 
 const lineWidth = 15;
 
@@ -59,7 +58,10 @@ const cols = {
 export default class Gauge extends React.Component {
 
   render() {
-    const val = data[0].value;
+    const val = this.props.score;
+    const data = [
+      { value: this.props.score },
+    ];
     return (
       <Chart height={375} data={data} scale={cols}>
         <Coord type="polar" startAngle={-9 / 8 * Math.PI} endAngle={1 / 8 * Math.PI} radius={0.75} />

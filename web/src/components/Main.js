@@ -3,11 +3,15 @@ import { Tag, Button, List, Card, Comment, Menu, Avatar, Statistic, Row, Col, La
 import { Chart, Geom, Axis, Tooltip, Legend } from 'bizcharts';
 import WordCloud from "react-d3-cloud";
 import Gauge from './Gauge';
+import SearchBar from './SearchBar';
+import {DEFAULT_CATEGORY_INFO} from "../constants";
+
+const axios = require('axios').default;
 
 
 // TODO: fix layout in other screen size
-// TODO: make the search bar functionable
 // TODO: change the test data to real data by fetching it from backend
+// Get from server
 const TredningList = [
     {
         rank: 1,
@@ -52,6 +56,7 @@ const TredningList = [
 ];
 // This is for word cloud
 // Test Word Cloud Data
+// Get from server -> words table
 const wordCloudData = [
     { text: "the", value: 1689 },
     { text: "to", value: 1446 },
@@ -94,6 +99,33 @@ const { Content, Footer, Sider } = Layout;
 
 
 export default class Main extends React.Component {
+
+    state ={
+        categoryInfo: DEFAULT_CATEGORY_INFO,
+    }
+
+    componentDidMount() {
+        this.loadCategoryInfo(this.state.categoryInfo.categoryName);
+    }
+
+    handleSelectCategory = (categoryName) => {
+        this.loadCategoryInfo(categoryName);
+    };
+
+    // To be implemented
+    loadCategoryInfo= async (categoryName) => {
+        const response = await axios.get("http://localhost:8080/getCategory/"+categoryName);
+        // console.log(response.data);
+        this.setState({categoryInfo: 
+            {
+                categoryName :response.data.categoryName,
+                score:response.data.score,
+                count:response.data.count
+            }
+        });
+        // console.log(this.state)
+    }
+
     render() {
         return (
             <div>
@@ -105,11 +137,8 @@ export default class Main extends React.Component {
                     backIcon="false"
                     subTitle="Help you find the public sentiments towards an event"
                     extra={
-                        <Search
-                            placeholder="input search text"
-                            onSearch={value => console.log(value)}
-                            style={{ width: 500 }}
-                        />
+                        // Use the SearchBar.js Component to replace this
+                        <SearchBar handleSelectCategory={this.handleSelectCategory}/>
                     }
                 />
                 <Layout style={{ minHeight: '100vh' }}>
@@ -155,20 +184,20 @@ export default class Main extends React.Component {
                                                 <Card className="Score" title="Sentiment Score" style={{height:'615px', justify: 'center', align: 'center'}}>
                                                     <Row gutter={16} >
                                                         <Col span={12} type='flex'type='flex' align='center'>
-                                                            <Statistic title="Event" value={"Trump"} valueStyle={{fontSize: '36px'}} />
+                                                            <Statistic title="Event" value={this.state.categoryInfo.categoryName} valueStyle={{fontSize: '36px'}} />
                                                         </Col>
                                                         <Col span={12} type='flex' align='center'>
                                                             <Statistic
                                                                 title="Score"
                                                                 valueStyle={{ color: '#F5222D', fontSize: '36px' }}
-                                                                value={-0.48}
+                                                                value={this.state.categoryInfo.score}
                                                                 prefix={<Icon type="arrow-down" />}
                                                                 precision={2}
                                                             />
                                                         </Col>
                                                     </Row>
                                                     <div style={{paddingLeft: '100px'}}>
-                                                        <Gauge />
+                                                        <Gauge score={this.state.categoryInfo.score}/>
                                                     </div>
                                                     <Row type='flex' justify='center' align='center'>
                                                         <Col span={8} justify='center' align='center'>
@@ -200,6 +229,7 @@ export default class Main extends React.Component {
                                                                         icon="user"
                                                                     />
                                                                 }
+                                                                //TODO: Get from server -> Tweets table. content 
                                                                 content={
                                                                     <p>BREAKING: The House Judiciary Cmte just released their 658-page impeachment report, to accompany the articles of impeachment against Trump for abuse of power and obstruction of justice. The best sentence in the report: “President Trump should be impeached and removed from office”</p>
                                                                 }
