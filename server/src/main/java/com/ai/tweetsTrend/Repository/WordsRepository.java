@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface WordsRepository extends JpaRepository<Words, Integer>{
     public Page<Words> findByCategoryId(Integer categoryId, Pageable pageable);
+    public void deleteAllByCategory_CategoryName(String name);
 }
