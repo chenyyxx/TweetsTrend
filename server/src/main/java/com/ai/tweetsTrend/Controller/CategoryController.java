@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 public class CategoryController{
     @Autowired
@@ -22,7 +24,7 @@ public class CategoryController{
     public @ResponseBody Category updateCategory(@PathVariable(value = "categoryName") String categoryName, @RequestBody Category category){
         Category queryResult =  categoryRepository.findByCategoryName(categoryName);
         if(queryResult!=null){
-            queryResult.setCategoryName(category.getCategoryName());
+            queryResult.setCategoryName(categoryName);
             queryResult.setCount(category.getCount());
             queryResult.setScore(category.getScore());
             categoryRepository.save(queryResult);
@@ -33,6 +35,11 @@ public class CategoryController{
         }
 
 
+    }
+
+    @GetMapping(path="/category/get/{value}")
+    public @ResponseBody List<Category> getRelatedCategory(@PathVariable(name="value") String value){
+        return categoryRepository.findAllByCategoryNameContaining(value);
     }
 
     @GetMapping(path="/getAll")

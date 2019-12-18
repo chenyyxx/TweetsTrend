@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface CategoryRepository extends JpaRepository<Category, Integer>{
     public Category findByCategoryName(String name);
+    public List<Category> findAllByCategoryNameContaining(String value);
 //    public List<Category> findAllByCategoryName(String name);
 }
