@@ -63,7 +63,7 @@ export default class Gauge extends React.Component {
       { value: this.props.score },
     ];
     return (
-      <Chart height={375} data={data} scale={cols}>
+      <Chart height={375} data={data} scale={cols} padding={[0, 0, 50, 0]} forceFit>
         <Coord type="polar" startAngle={-9 / 8 * Math.PI} endAngle={1 / 8 * Math.PI} radius={0.75} />
         <Legend position="right" dy={-20}/>
         <Axis

@@ -126,7 +126,7 @@ export default class Main extends React.Component {
                                     <div>
                                         <Row gutter={[8, 8]} type='flex'>
                                             <Col span={12}>
-                                                <Card className="Score" title="Sentiment Score" style={{ height: '615px', justify: 'center', align: 'center' }}>
+                                                <Card className="Score" title="Sentiment Score" style={{ height: '615px'}}>
                                                     <Row gutter={16} >
                                                         <Col span={12} type='flex' align='center'>
                                                             <Statistic title="Event" value={this.state.categoryInfo.categoryName} valueStyle={{ fontSize: '36px' }} />
@@ -155,7 +155,7 @@ export default class Main extends React.Component {
                                                             />}
                                                         </Col>
                                                     </Row>
-                                                    <div style={{ paddingLeft: '100px' }}>
+                                                    <div style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
                                                         <Gauge score={this.state.categoryInfo.score} />
                                                     </div>
                                                     <Row type='flex' justify='center' >
@@ -178,7 +178,7 @@ export default class Main extends React.Component {
                                                 </Card>
                                             </Col>
                                             <Col span={12}>
-                                                <Card className="Tweets" title="Example Tweets" style={{ height: '615px', justify: 'center', align: 'center' }}>
+                                                <Card className="Tweets" title="Example Tweets" style={{ height: '615px', overflowY:'scroll' }}>
                                                     <Row gutter={[16, 16]} type="flex">
                                                         <Col span={12}>
                                                             <Comment
@@ -274,8 +274,8 @@ export default class Main extends React.Component {
 
                                         <Row gutter={[8, 8]}>
                                             <Col span={12}>
-                                                <Card className="StatsGrah" title="Word Count">
-                                                    <Chart width={750} height={400} data={this.state.wordCloudData} scale={cols}>
+                                                <Card className="StatsGraph" title="Word Count" style={{ height: '615px'}}>
+                                                    <Chart width={750} height={500} data={this.state.wordCloudData} scale={cols} padding={[10, 30, 160, 70]} forceFit>
                                                         <Axis name="text" title />
                                                         <Axis name="value" title />
                                                         <Legend position="bottom" offsetY={-window.innerHeight / 2 + 430} offsetX={0} />
@@ -285,11 +285,12 @@ export default class Main extends React.Component {
                                                 </Card>
                                             </Col>
                                             <Col span={12}>
-                                                <Card className="WordCloud" title="Word Cloud">
+                                                <Card className="WordCloud" title="Word Cloud" style={{ height: '615px',resize:'vertical', overflow: 'auto'}}>
                                                     <WordCloud
                                                         data={this.state.wordCloudData}
                                                         fontSizeMapper={fontSizeMapper}
-                                                        height={400}
+                                                        height={500}
+                                                        style={{}}
                                                     />
                                                 </Card>
                                             </Col>
