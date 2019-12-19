@@ -29,9 +29,9 @@ export default class Main extends React.Component {
 
     state = {
         allCategory: [],
-        categoryInfo: DEFAULT_CATEGORY_INFO,
-        wordCloudData: DEFAULT_WORD_CLOUD,
-        exampleTweets: DEFAULT_TWEETS,
+        categoryInfo: {},
+        wordCloudData: [],
+        exampleTweets: [{},{},{},{},{},{}],
     }
 
     componentDidMount() {
@@ -44,8 +44,15 @@ export default class Main extends React.Component {
 
 
     loadCategoryInfo = async (categoryName) => {
+        let categoryInfo = {};
         const allCategory = await axios.get("http://localhost:8080/category/getAll?page=0%size=20&sort=count,desc");
-        const categoryInfo = await axios.get("http://localhost:8080/getCategory/" + categoryName);
+        console.log(allCategory.data.content[0].categoryName)
+        if(categoryName==null){
+            categoryInfo = await axios.get("http://localhost:8080/getCategory/" + allCategory.data.content[0].categoryName);
+        } else{
+            categoryInfo = await axios.get("http://localhost:8080/getCategory/" + categoryName);
+        }
+
         const wordCloudData = await axios.get("http://localhost:8080/category/" + categoryInfo.data.id + "/getAllWords")
         const exampleTweets = await axios.get("http://localhost:8080/category/" + categoryInfo.data.id + "/getAllTweets")
         // console.log(categoryInfo.data);
@@ -188,7 +195,7 @@ export default class Main extends React.Component {
                                                                         icon="user"
                                                                     />
                                                                 }
-                                                                //TODO: Get from server -> Tweets table. content 
+                                                                //TODO: Get from server -> Tweets table. content
                                                                 content={
                                                                     <p>{this.state.exampleTweets[0].content}
                                                                     </p>
