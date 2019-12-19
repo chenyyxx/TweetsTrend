@@ -31,8 +31,7 @@ topics = sc.broadcast(tweetsDev.findTrendingTopics(2514815))
 dataStream = ssc.socketTextStream("localhost", 5555)
 dataStream2 = ssc.socketTextStream("localhost", 5556)
 
-wordfields = ("word", "word_count", "topic")
-Wordobject = namedtuple('wordObject', wordfields)
+
 # =====================================
 def aggregate_words_count(new_values, total_sum):
     return sum(new_values) + (total_sum or 0)
@@ -46,18 +45,14 @@ def get_sql_context_instance(spark_context):
 
 def process_word_counts(time, rdd):
     print("\n----------- %s -----------\n" % str(time))
-    # Get spark sql singleton context from the current context
-    sql_context = get_sql_context_instance(rdd.context)
+    sql_context = get_sql_context_instance(rdd.context) # Get spark sql singleton context from the current context
     rdd.toDF().registerTempTable("wordCounts")
-    # convert the RDD to Row RDD
     # row_rdd = rdd.map(lambda w: Row(word=w[1][0], word_count=w[1][1], topic=w[0][0]))
-    # create a DF from the Row RDD
     # words_df = sql_context.createDataFrame(row_rdd)
-    # Register the dataframe as table
     # words_df.registerTempTable("wordCounts")
-    # get the top 20 words from the table using SQL and print them
     top20words = sql_context.sql("select word, word_count, topic from wordCounts order by word_count desc limit 20")
     top20words.show()
+    send_word_count_to_server(top20words)
 
 
 def process_sentiment_scores(time, rdd):
@@ -66,30 +61,67 @@ def process_sentiment_scores(time, rdd):
     row_rdd = rdd.map(lambda w: Row(tweet_text=w[0], score=w[1], topic=w[2]))
     sentiment_df = sql_context.createDataFrame(row_rdd)
     sentiment_df.registerTempTable("sentiments")
-    sixTweets = sql_context.sql("select tweet_text, score, topic from sentiments limit 6")
-    sixTweets.show()
-    # send_tweets_to_server(sixTweets)
+
+    category_data = sql_context.sql("select avg(score) as avg_score, count(score) as count_score, min(topic) as min_topic from sentiments")
+    category_data.show()
+    send_category_to_server(category_data)
+
+    tweets_data = sql_context.sql("select tweet_text, score, topic from sentiments limit 6")
+    tweets_data.show()
+    send_tweets_to_server(tweets_data)
+
+
+def send_word_count_to_server(df):
+    top_words = [t.word.encode('utf-8') for t in df.select("word").collect()]
+    tags_count = [p.word_count for p in df.select("word_count").collect()]
+    topic_array = [t.topic.encode('utf-8') for t in df.select("topic").collect()]
+    topic = topic_array[0]
+    delete_url = 'http://localhost:8080/category/' + topic + '/deleteAllWords'
+    update_url = 'http://localhost:8080/category/' + topic + '/updateAllWords'
+    request_data = []
+    for i in range(len(top_words)):
+        request_data.append({"word": top_words[i], "count": tags_count[i]})
+    print(request_data)
+    delete_response = requests.delete(delete_url)
+    print(delete_response.text)
+    response = requests.put(update_url, json=request_data)
+    print(response.text)
+
+
+def send_category_to_server(df):
+    topic_array = [t.min_topic.encode('utf-8') for t in df.select("min_topic").collect()]
+    topic = topic_array[0]
+    avg_array = [t.avg_score for t in df.select("avg_score").collect()]
+    avg = avg_array[0]
+    count_array = [t.count_score for t in df.select("count_score").collect()]
+    count = count_array[0]
+    url = 'http://localhost:8080/updateCategory/' + topic
+    request_data = {"categoryName": topic, "count": count, "score": avg}
+    print(request_data)
+    response = requests.put(url, json=request_data)
+    print(response.text)
 
 
 def send_tweets_to_server(df):
     sample_tweets = [t.tweet_text.encode('utf-8') for t in df.select("tweet_text").collect()]
-    topic_array = [t.word.encode('utf-8') for t in df.select("topic").collect()]
+    topic_array = [t.topic.encode('utf-8') for t in df.select("topic").collect()]
     topic = topic_array[0]
     delete_url = 'http://localhost:8080/category/'+ topic +'/deleteAllTweets'
     update_url = 'http://localhost:8080/category/'+ topic +'/updateAllTweets'
-    request_data = {'content': sample_tweets.encode('utf-8')}
+    request_data = []
+    for t in sample_tweets:
+        request_data.append({"content": t})
+    print(request_data)
     delete_response = requests.delete(delete_url)
-    response = requests.post(update_url, data=request_data)
+    print(delete_response.text)
+    response = requests.put(update_url, json=request_data)
+    print(response.text)
 
 
-def send_word_count_to_server(df):
-    top_words = [str(t.word) for t in df.select("word").collect()]
-    tags_count = [p.word_count for p in df.select("word_count").collect()]
-    topic_array = [str(t.word) for t in df.select("topic").collect()]
-    delete_url = 'http://localhost:8080/category'+'Trump'+'deleteAllWords'
+wordfields = ("word", "word_count", "topic")
+Wordobject = namedtuple('wordObject', wordfields)
 
-# =====================================
-# Getting word counts for word cloud
+
 def process_words(dataStream, topic):
     words = dataStream.flatMap(lambda line: line.split())\
         .map(lambda word: word.lower())\
@@ -101,18 +133,17 @@ def process_words(dataStream, topic):
     words.foreachRDD(process_word_counts)
 
 
-# Get sentiment scores
 def process_scores(dataStream, topic):
     scores = dataStream.map(lambda text: (text, analyzer.polarity_scores(text.encode("utf-8")).get("compound"), topic))
     scores.foreachRDD(process_sentiment_scores)
-# scores.foreachRDD(lambda rdd: rdd.toDF().registerTempTable("scores"))
 
+
+# =====================================
+process_scores(dataStream, 'Trump')
+process_scores(dataStream2, 'Clinton')
 
 process_words(dataStream, 'Trump')
-process_words(dataStream2, 'BlackPink')
-#
-process_scores(dataStream, 'Trump')
-process_scores(dataStream2, 'BlackPink')
+process_words(dataStream2, 'Clinton')
 
 
 ssc.start()

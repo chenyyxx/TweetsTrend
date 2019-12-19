@@ -32,8 +32,8 @@ class MyStreamListener(tweepy.StreamListener):
                 tweet = tweet + cur_status['extended_tweet']['full_text']
             else:
                 tweet = tweet + cur_status['text']
-            if tweet == '':
-                return True
+            # if tweet == '':
+            #     return True
             tweet = " ".join(tweet.split()) + '\n'
             print(tweet)
             self.client_socket.send(tweet.encode('utf-8'))
@@ -50,7 +50,7 @@ class MyStreamListener(tweepy.StreamListener):
 
 
 def findTrendingTopics(location_id):
-    # 2514815
+    # 2514815 Washington DC
     # print(api.trends_closest(38.9072, -77.0369))
     trendsRaw = api.trends_place(location_id)
     trends = [trend['name'] for trend in trendsRaw[0]['trends']]
@@ -89,4 +89,4 @@ def startTwitterStreamListener(topics):
 
 if __name__ == '__main__':
     # startTwitterStreamListener(findTrendingTopics(2514815))
-    startTwitterStreamListener(['Trump', 'BlackPink'])
+    startTwitterStreamListener(['Trump', 'Clinton'])

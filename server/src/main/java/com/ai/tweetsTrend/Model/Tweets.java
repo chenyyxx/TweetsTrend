@@ -11,6 +11,7 @@ import javax.persistence.ManyToOne;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.Type;
 
 import java.io.Serializable;
 
@@ -20,6 +21,7 @@ public class Tweets implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
+    @Type(type="text")
     private String content;
 
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
