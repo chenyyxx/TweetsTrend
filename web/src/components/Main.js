@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tag, Button, List, Card, Comment, Menu, Avatar, Statistic, Row, Col, Layout, Breadcrumb, Icon, PageHeader, Input, Typography } from 'antd';
+import { Tag, Button, List, Card, Comment, Menu, Avatar, Statistic, Row, Col, Layout, Breadcrumb, Icon, PageHeader, Typography } from 'antd';
 import { Chart, Geom, Axis, Tooltip, Legend } from 'bizcharts';
 import WordCloud from "react-d3-cloud";
 import Gauge from './Gauge';
@@ -7,53 +7,6 @@ import SearchBar from './SearchBar';
 import { DEFAULT_CATEGORY_INFO, DEFAULT_WORD_CLOUD, DEFAULT_TWEETS } from "../constants";
 
 const axios = require('axios').default;
-
-// TODO: fix layout in other screen size
-// TODO: change the test data to real data by fetching it from backend
-// Get from server
-const TredningList = [
-    {
-        rank: 1,
-        title: '#Trump',
-    },
-    {
-        rank: 2,
-        title: '#Concert',
-    },
-    {
-        rank: 3,
-        title: '#VoteNow',
-    },
-    {
-        rank: 4,
-        title: '#Final',
-    },
-    {
-        rank: 5,
-        title: '#Christmas',
-    },
-    {
-        rank: 6,
-        title: '#BlackFriday',
-    },
-    {
-        rank: 7,
-        title: '#CardiB',
-    },
-    {
-        rank: 8,
-        title: '#CNN',
-    },
-    {
-        rank: 9,
-        title: '#Election',
-    },
-    {
-        rank: 10,
-        title: '#ChainSmoker',
-    },
-];
-
 
 const fontSizeMapper = word => Math.log2(word.value) * 5;
 // const rotate = word => word.value % 360;
@@ -67,7 +20,6 @@ const cols = {
 
 
 // This is for Layout
-const { Search } = Input;
 const { Content, Footer, Sider } = Layout;
 
 
@@ -90,13 +42,13 @@ export default class Main extends React.Component {
         this.loadCategoryInfo(categoryName);
     };
 
-    // To be implemented
+
     loadCategoryInfo = async (categoryName) => {
         const allCategory = await axios.get("http://localhost:8080/category/getAll?page=0%size=20&sort=count,desc");
         const categoryInfo = await axios.get("http://localhost:8080/getCategory/" + categoryName);
         const wordCloudData = await axios.get("http://localhost:8080/category/" + categoryInfo.data.id + "/getAllWords")
         const exampleTweets = await axios.get("http://localhost:8080/category/" + categoryInfo.data.id + "/getAllTweets")
-        console.log(categoryInfo.data);
+        // console.log(categoryInfo.data);
         this.setState(
             {
                 allCategory: allCategory.data.content.map(category => ({
@@ -117,11 +69,10 @@ export default class Main extends React.Component {
                 }))
             }
         );
-        console.log(this.state)
+        // console.log(this.state)
     }
 
     render() {
-        const a = [1,2,3,4,5];
         return (
             <div>
                 <PageHeader
@@ -152,7 +103,7 @@ export default class Main extends React.Component {
                                                 dataSource={this.state.allCategory}
                                                 renderItem={item =>
                                                     <List.Item>
-                                                        <Button type='link'>
+                                                        <Button type="link" onClick={(event) => this.handleSelectCategory(item.name)}>
                                                             {item.name}
                                                         </Button>
                                                     </List.Item>}
@@ -177,28 +128,28 @@ export default class Main extends React.Component {
                                             <Col span={12}>
                                                 <Card className="Score" title="Sentiment Score" style={{ height: '615px', justify: 'center', align: 'center' }}>
                                                     <Row gutter={16} >
-                                                        <Col span={12} type='flex' type='flex' align='center'>
+                                                        <Col span={12} type='flex' align='center'>
                                                             <Statistic title="Event" value={this.state.categoryInfo.categoryName} valueStyle={{ fontSize: '36px' }} />
                                                         </Col>
                                                         <Col span={12} type='flex' align='center'>
                                                             {this.state.categoryInfo.score < -0.05 && <Statistic
                                                                 title="Score"
                                                                 valueStyle={{ color: '#F5222D', fontSize: '36px' }}
-                                                                value={this.state.categoryInfo.score}
+                                                                value={parseFloat(this.state.categoryInfo.score).toFixed(2)}
                                                                 prefix={<Icon type="arrow-down" />}
                                                                 precision={2}
                                                             />}
                                                             {this.state.categoryInfo.score >= -0.05 && this.state.categoryInfo.score <= 0.05 && <Statistic
                                                                 title="Score"
                                                                 valueStyle={{ color: '#FFBF00', fontSize: '36px' }}
-                                                                value={this.state.categoryInfo.score}
+                                                                value={parseFloat(this.state.categoryInfo.score).toFixed(2)}
                                                                 prefix={<Icon type="-minus" />}
                                                                 precision={2}
                                                             />}
                                                             {this.state.categoryInfo.score > 0.05 && <Statistic
                                                                 title="Score"
                                                                 valueStyle={{ color: '#55cb72', fontSize: '36px' }}
-                                                                value={this.state.categoryInfo.score}
+                                                                value={parseFloat(this.state.categoryInfo.score).toFixed(2)}
                                                                 prefix={<Icon type="arrow-up" />}
                                                                 precision={2}
                                                             />}
@@ -207,7 +158,7 @@ export default class Main extends React.Component {
                                                     <div style={{ paddingLeft: '100px' }}>
                                                         <Gauge score={this.state.categoryInfo.score} />
                                                     </div>
-                                                    <Row type='flex' justify='center' align='center'>
+                                                    <Row type='flex' justify='center' >
                                                         <Col span={8} justify='center' align='center'>
                                                             <Tag
                                                                 color='#F5222D'

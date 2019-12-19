@@ -116,7 +116,7 @@ export default class Gauge extends React.Component {
           />
           <Html
             position={['50%', '95%']}
-            html={() => (`<div style="width: 300px;text-align: center;font-size: 12px!important;"><p style="font-size: 1.75em; color: rgba(0,0,0,0.43);margin: 0;">Score</p><p style="font-size: 3em;color: rgba(0,0,0,0.85);margin: 0;">${val}</p></div>`)}
+            html={() => (`<div style="width: 300px;text-align: center;font-size: 12px!important;"><p style="font-size: 1.75em; color: rgba(0,0,0,0.43);margin: 0;">Score</p><p style="font-size: 3em;color: rgba(0,0,0,0.85);margin: 0;">${parseFloat(val).toFixed(2)}</p></div>`)}
           />
         </Guide>
         <Geom
